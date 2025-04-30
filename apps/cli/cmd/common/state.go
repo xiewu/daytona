@@ -35,3 +35,27 @@ func AwaitImageActive(ctx context.Context, apiClient *daytonaapiclient.APIClient
 		time.Sleep(time.Second)
 	}
 }
+
+func AwaitSandboxStarted(ctx context.Context, apiClient *daytonaapiclient.APIClient, targetSandbox string) error {
+	for {
+		sandboxes, res, err := apiClient.WorkspaceAPI.ListWorkspaces(ctx).Execute()
+		if err != nil {
+			return apiclient.HandleErrorResponse(res, err)
+		}
+
+		for _, sandbox := range sandboxes {
+			if sandbox.Id == targetSandbox {
+				if sandbox.State != nil && *sandbox.State == daytonaapiclient.WORKSPACESTATE_STARTED {
+					return nil
+				} else if sandbox.State != nil && *sandbox.State == daytonaapiclient.WORKSPACESTATE_ERROR {
+					if sandbox.ErrorReason == nil {
+						return fmt.Errorf("sandbox processing failed")
+					}
+					return fmt.Errorf("sandbox processing failed: %s", *sandbox.ErrorReason)
+				}
+			}
+		}
+
+		time.Sleep(time.Second)
+	}
+}

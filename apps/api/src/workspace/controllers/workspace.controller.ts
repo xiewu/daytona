@@ -18,6 +18,8 @@ import {
   Put,
   NotFoundException,
   ForbiddenException,
+  Res,
+  Req,
 } from '@nestjs/common'
 import Redis from 'ioredis'
 import { CombinedAuthGuard } from '../../auth/combined-auth.guard'
@@ -52,6 +54,7 @@ import { OrganizationResourcePermission } from '../../organization/enums/organiz
 import { OrganizationResourceActionGuard } from '../../organization/guards/organization-resource-action.guard'
 import { OrganizationService } from '../../organization/services/organization.service'
 import { PortPreviewUrlDto } from '../dto/port-preview-url.dto'
+import WebSocket from 'ws'
 
 @ApiTags('workspace')
 @Controller('workspace')
@@ -149,14 +152,17 @@ export class WorkspaceController {
 
     const workspace = await this.workspaceService.create(organizationId, createWorkspaceDto)
 
-    // Wait for workspace to be started
-    const workspaceState = await this.waitForWorkspaceState(
-      workspace.id,
-      WorkspaceState.STARTED,
-      30000, // 30 seconds timeout
-    )
+    // If the workspace has no node, it means it is still building - return the ID to the client so they can get logs
+    if (workspace.nodeId) {
+      // Wait for workspace to be started
+      const workspaceState = await this.waitForWorkspaceState(
+        workspace.id,
+        WorkspaceState.STARTED,
+        30000, // 30 seconds timeout
+      )
 
-    workspace.state = workspaceState
+      workspace.state = workspaceState
+    }
 
     const node = await this.nodeService.findOne(workspace.nodeId)
     const dto = WorkspaceDto.fromWorkspace(workspace, node.domain)
@@ -409,6 +415,101 @@ export class WorkspaceController {
     @Param('port') port: number,
   ): Promise<PortPreviewUrlDto> {
     return this.workspaceService.getPortPreviewUrl(workspaceId, port)
+  }
+
+  @Get(':workspaceId/build-logs')
+  @ApiOperation({
+    summary: 'Get build logs',
+    operationId: 'getBuildLogs',
+  })
+  @ApiParam({
+    name: 'workspaceId',
+    description: 'ID of the workspace',
+    type: 'string',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Build logs stream',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        statusCode: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Build logs not found',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        statusCode: { type: 'number' },
+      },
+    },
+  })
+  @UseGuards(WorkspaceAccessGuard)
+  async getBuildLogs(@Param('workspaceId') workspaceId: string): Promise<void> {
+    const workspace = await this.workspaceService.findOne(workspaceId)
+    if (!workspace || !workspace.nodeId) {
+      throw new NotFoundException(`Workspace with ID ${workspaceId} not found or has no node assigned`)
+    }
+
+    if (!workspace.buildInfo) {
+      throw new NotFoundException(`Workspace with ID ${workspaceId} has no build info`)
+    }
+
+    const node = await this.nodeService.findOne(workspace.nodeId)
+    if (!node) {
+      throw new NotFoundException(`Node for workspace ${workspaceId} not found`)
+    }
+
+    const imageRef = workspace.buildInfo.imageRef.replace(':', '-')
+
+    const wss = new WebSocket.Server({ noServer: true })
+
+    // Forward the request to the runner
+    const runnerUrl = `wss://${node.domain}/api/images/build/${imageRef}/logs`
+
+    console.log(runnerUrl)
+
+    wss.on('connection', (clientSocket: WebSocket, request) => {
+      console.log('Incoming WebSocket client connected')
+
+      // Connect to the target WebSocket server
+      const targetSocket = new WebSocket(runnerUrl)
+
+      // When client sends a message, forward it to target
+      clientSocket.on('message', (message) => {
+        if (targetSocket.readyState === WebSocket.OPEN) {
+          targetSocket.send(message)
+        }
+      })
+
+      // When target sends a message, forward it to client
+      targetSocket.on('message', (message) => {
+        if (clientSocket.readyState === WebSocket.OPEN) {
+          clientSocket.send(message)
+        }
+      })
+
+      // Handle client close
+      clientSocket.on('close', () => {
+        console.log('Client connection closed')
+        targetSocket.close()
+      })
+
+      // Handle target server close
+      targetSocket.on('close', () => {
+        console.log('Target server connection closed')
+        clientSocket.close()
+      })
+    })
   }
 
   private async waitForWorkspaceState(

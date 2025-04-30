@@ -40,6 +40,7 @@ model_execute_request.go
 model_execute_response.go
 model_file_info.go
 model_file_status.go
+model_get_build_logs_400_response.go
 model_git_add_request.go
 model_git_branch_request.go
 model_git_clone_request.go

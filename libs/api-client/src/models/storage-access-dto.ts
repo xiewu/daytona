@@ -54,4 +54,10 @@ export interface StorageAccessDto {
    * @memberof StorageAccessDto
    */
   organizationId: string
+  /**
+   * S3 bucket name
+   * @type {string}
+   * @memberof StorageAccessDto
+   */
+  bucket: string
 }

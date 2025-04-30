@@ -34,6 +34,8 @@ type StorageAccessDto struct {
 	RegistryId string `json:"registryId"`
 	// Organization ID
 	OrganizationId string `json:"organizationId"`
+	// S3 bucket name
+	Bucket string `json:"bucket"`
 }
 
 type _StorageAccessDto StorageAccessDto
@@ -42,7 +44,7 @@ type _StorageAccessDto StorageAccessDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewStorageAccessDto(accessKey string, secret string, sessionToken string, storageUrl string, registryId string, organizationId string) *StorageAccessDto {
+func NewStorageAccessDto(accessKey string, secret string, sessionToken string, storageUrl string, registryId string, organizationId string, bucket string) *StorageAccessDto {
 	this := StorageAccessDto{}
 	this.AccessKey = accessKey
 	this.Secret = secret
@@ -50,6 +52,7 @@ func NewStorageAccessDto(accessKey string, secret string, sessionToken string, s
 	this.StorageUrl = storageUrl
 	this.RegistryId = registryId
 	this.OrganizationId = organizationId
+	this.Bucket = bucket
 	return &this
 }
 
@@ -205,6 +208,30 @@ func (o *StorageAccessDto) SetOrganizationId(v string) {
 	o.OrganizationId = v
 }
 
+// GetBucket returns the Bucket field value
+func (o *StorageAccessDto) GetBucket() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Bucket
+}
+
+// GetBucketOk returns a tuple with the Bucket field value
+// and a boolean to check if the value has been set.
+func (o *StorageAccessDto) GetBucketOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Bucket, true
+}
+
+// SetBucket sets field value
+func (o *StorageAccessDto) SetBucket(v string) {
+	o.Bucket = v
+}
+
 func (o StorageAccessDto) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -221,6 +248,7 @@ func (o StorageAccessDto) ToMap() (map[string]interface{}, error) {
 	toSerialize["storageUrl"] = o.StorageUrl
 	toSerialize["registryId"] = o.RegistryId
 	toSerialize["organizationId"] = o.OrganizationId
+	toSerialize["bucket"] = o.Bucket
 	return toSerialize, nil
 }
 
@@ -235,6 +263,7 @@ func (o *StorageAccessDto) UnmarshalJSON(data []byte) (err error) {
 		"storageUrl",
 		"registryId",
 		"organizationId",
+		"bucket",
 	}
 
 	allProperties := make(map[string]interface{})

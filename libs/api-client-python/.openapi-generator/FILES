@@ -42,6 +42,7 @@ daytona_api_client/models/execute_request.py
 daytona_api_client/models/execute_response.py
 daytona_api_client/models/file_info.py
 daytona_api_client/models/file_status.py
+daytona_api_client/models/get_build_logs400_response.py
 daytona_api_client/models/git_add_request.py
 daytona_api_client/models/git_branch_request.py
 daytona_api_client/models/git_clone_request.py

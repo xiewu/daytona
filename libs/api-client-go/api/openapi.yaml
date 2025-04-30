@@ -1450,6 +1450,50 @@ paths:
       summary: Get preview URL for a workspace port
       tags:
         - workspace
+  /workspace/{workspaceId}/build-logs:
+    get:
+      operationId: getBuildLogs
+      parameters:
+        - description: Use with JWT to specify the organization ID
+          explode: false
+          in: header
+          name: X-Daytona-Organization-ID
+          required: false
+          schema:
+            type: string
+          style: simple
+        - description: ID of the workspace
+          explode: false
+          in: path
+          name: workspaceId
+          required: true
+          schema:
+            type: string
+          style: simple
+      responses:
+        '200':
+          description: Build logs stream
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getBuildLogs_400_response'
+          description: Bad request
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getBuildLogs_400_response'
+          description: Build logs not found
+      security:
+        - bearer: []
+        - oauth2:
+            - openid
+            - profile
+            - email
+      summary: Get build logs
+      tags:
+        - workspace
   /nodes:
     get:
       operationId: listNodes
@@ -6167,6 +6211,7 @@ components:
     StorageAccessDto:
       example:
         organizationId: 123e4567-e89b-12d3-a456-426614174000
+        bucket: daytona
         accessKey: temp-user-123
         sessionToken: eyJhbGciOiJIUzI1NiIs...
         registryId: 123e4567-e89b-12d3-a456-426614174000
@@ -6197,13 +6242,28 @@ components:
           description: Organization ID
           example: 123e4567-e89b-12d3-a456-426614174000
           type: string
+        bucket:
+          description: S3 bucket name
+          example: daytona
+          type: string
       required:
         - accessKey
+        - bucket
         - organizationId
         - registryId
         - secret
         - sessionToken
         - storageUrl
+      type: object
+    getBuildLogs_400_response:
+      example:
+        message: message
+        statusCode: 0.8008281904610115
+      properties:
+        message:
+          type: string
+        statusCode:
+          type: number
       type: object
     uploadFile_request:
       properties:

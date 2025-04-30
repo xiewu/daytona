@@ -67,6 +67,7 @@ from daytona_api_client.models.execute_request import ExecuteRequest
 from daytona_api_client.models.execute_response import ExecuteResponse
 from daytona_api_client.models.file_info import FileInfo
 from daytona_api_client.models.file_status import FileStatus
+from daytona_api_client.models.get_build_logs400_response import GetBuildLogs400Response
 from daytona_api_client.models.git_add_request import GitAddRequest
 from daytona_api_client.models.git_branch_request import GitBranchRequest
 from daytona_api_client.models.git_clone_request import GitCloneRequest

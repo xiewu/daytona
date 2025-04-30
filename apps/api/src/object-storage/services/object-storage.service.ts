@@ -21,7 +21,7 @@ export class ObjectStorageService {
       const s3Endpoint = this.configService.getOrThrow('s3.endpoint')
       const s3AccessKey = this.configService.getOrThrow('s3.accessKey')
       const s3SecretKey = this.configService.getOrThrow('s3.secretKey')
-      const s3DefaultBucket = this.configService.getOrThrow('s3.defaultBucket') || 'daytona'
+      const s3Bucket = this.configService.getOrThrow('s3.defaultBucket')
 
       const policy = {
         Version: '2012-10-17',
@@ -29,13 +29,13 @@ export class ObjectStorageService {
           {
             Effect: 'Allow',
             Action: ['s3:PutObject', 's3:GetObject'],
-            Resource: [`arn:aws:s3:::${s3DefaultBucket}/${organizationId}/*`],
+            Resource: [`arn:aws:s3:::${s3Bucket}/${organizationId}/*`],
           },
           // ListBucket only shows object keys and some metadata, not the actual objects
           {
             Effect: 'Allow',
             Action: ['s3:ListBucket'],
-            Resource: [`arn:aws:s3:::${s3DefaultBucket}`],
+            Resource: [`arn:aws:s3:::${s3Bucket}`],
           },
         ],
       }
@@ -88,6 +88,7 @@ export class ObjectStorageService {
         storageUrl: s3Endpoint,
         registryId: organizationId,
         organizationId,
+        bucket: s3Bucket,
       }
     } catch (error) {
       this.logger.error('Storage push access error:', error.response?.data || error.message)

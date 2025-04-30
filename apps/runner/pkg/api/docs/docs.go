@@ -95,6 +95,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/images/build/{image}/logs": {
+            "get": {
+                "description": "Stream build logs via websocket",
+                "tags": [
+                    "images"
+                ],
+                "summary": "Get build logs",
+                "operationId": "GetBuildLogs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Image ref without the tag",
+                        "name": "image",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Build logs stream",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/images/exists": {
             "get": {
                 "description": "Check if a specified Docker image exists locally",

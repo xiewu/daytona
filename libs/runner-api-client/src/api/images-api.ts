@@ -83,6 +83,40 @@ export const ImagesApiAxiosParamCreator = function (configuration?: Configuratio
       }
     },
     /**
+     * Stream build logs via websocket
+     * @summary Get build logs
+     * @param {string} image Image ref without the tag
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getBuildLogs: async (image: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+      // verify required parameter 'image' is not null or undefined
+      assertParamExists('getBuildLogs', 'image', image)
+      const localVarPath = `/images/build/{image}/logs`.replace(`{${'image'}}`, encodeURIComponent(String(image)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication Bearer required
+      await setApiKeyToObject(localVarHeaderParameter, 'Authorization', configuration)
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
      * Check if a specified Docker image exists locally
      * @summary Check if a Docker image exists
      * @param {string} image Image name and tag
@@ -229,6 +263,29 @@ export const ImagesApiFp = function (configuration?: Configuration) {
         )(axios, localVarOperationServerBasePath || basePath)
     },
     /**
+     * Stream build logs via websocket
+     * @summary Get build logs
+     * @param {string} image Image ref without the tag
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getBuildLogs(
+      image: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getBuildLogs(image, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['ImagesApi.getBuildLogs']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
      * Check if a specified Docker image exists locally
      * @summary Check if a Docker image exists
      * @param {string} image Image name and tag
@@ -318,6 +375,16 @@ export const ImagesApiFactory = function (configuration?: Configuration, basePat
       return localVarFp.buildImage(request, options).then((request) => request(axios, basePath))
     },
     /**
+     * Stream build logs via websocket
+     * @summary Get build logs
+     * @param {string} image Image ref without the tag
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getBuildLogs(image: string, options?: RawAxiosRequestConfig): AxiosPromise<string> {
+      return localVarFp.getBuildLogs(image, options).then((request) => request(axios, basePath))
+    },
+    /**
      * Check if a specified Docker image exists locally
      * @summary Check if a Docker image exists
      * @param {string} image Image name and tag
@@ -368,6 +435,20 @@ export class ImagesApi extends BaseAPI {
   public buildImage(request: BuildImageRequestDTO, options?: RawAxiosRequestConfig) {
     return ImagesApiFp(this.configuration)
       .buildImage(request, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Stream build logs via websocket
+   * @summary Get build logs
+   * @param {string} image Image ref without the tag
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ImagesApi
+   */
+  public getBuildLogs(image: string, options?: RawAxiosRequestConfig) {
+    return ImagesApiFp(this.configuration)
+      .getBuildLogs(image, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
